@@ -1,0 +1,13 @@
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.exe
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.deps.json
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.runtimeconfig.json
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.runtimeconfig.dev.json
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.dll
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\bin\Debug\netcoreapp3.1\SocketServer.pdb
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.csprojAssemblyReference.cache
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.csproj.CoreCompileInputs.cache
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.AssemblyInfoInputs.cache
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.AssemblyInfo.cs
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.dll
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.pdb
+D:\Projects\Visual Studio Projects\SocketServer\SocketServer\obj\Debug\netcoreapp3.1\SocketServer.genruntimeconfig.cache
