@@ -87,12 +87,29 @@ namespace SocketServer
 
             try
             {
+                byte[] metaData = new byte[256];
+                bytes = handler.Receive(metaData);
+
+                Dictionary<string, string> meta = Protocol.ParseMeta(Encoding.UTF8.GetString(metaData, 0, bytes));
+
+                switch (Enum.Parse(typeof(Command), meta["Command"]))
+                {
+                    case Command.LOGIN:
+
+                        break;
+                    case Command.TEXT:
+                        break;
+                    case Command.BIN:
+                        break;
+                }
+
+                List<byte[]> list = new List<byte[]>();
                 do
                 {
                     byte[] data = new byte[256];
+                    bytes = handler.Receive(metaData);
 
-                    bytes = handler.Receive(data);
-                    builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
+                    list.Add(data);
                 }
                 while (handler.Available > 0);
             }
