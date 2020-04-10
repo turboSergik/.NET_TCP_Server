@@ -63,12 +63,12 @@ namespace SocketServer
 
         public void sendMessage(Socket handler, string message)
         {
-           
-            byte[] data = Encoding.Unicode.GetBytes(message);
 
-            data = Encoding.Unicode.GetBytes(message);
-            handler.Send(data);
+            Packet packet = new Packet();
+            packet = Protocol.ConfigurePacket(Command.TEXT, "Server", Encoding.Unicode.GetBytes(message));
 
+            handler.Send(packet.MetaBytes());
+            handler.Send(packet.Response);
         }
 
         public void waitingAnswer(Socket handler)
