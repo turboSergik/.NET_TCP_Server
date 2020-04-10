@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -12,10 +13,18 @@ namespace SocketServer
         public Socket listenSocket;
         public IPEndPoint ipPoint;
 
+        public Dictionary<string, Socket> connectedUsers;
+        public List<string> loginList;
+
+        public string login = "";
+
         public ListenSocketInteraction()
         {
             ipPoint = new IPEndPoint(IPAddress.Parse(Settings.address), Settings.port);
             listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            connectedUsers = new Dictionary<string, Socket>();
+            loginList = new List<string>(); 
 
             try
             {
@@ -46,32 +55,14 @@ namespace SocketServer
         {
             while (true)
             {
-                string answer = "";
-                answer = waitingAnswer(handler);
-
-                byte[] data = new byte[256];
-
-                if (answer == "end")
-                {
-                    // send answer
-                    string message = "Connection closed by user!";
-                    data = Encoding.Unicode.GetBytes(message);
-                    handler.Send(data);
-
-                    // закрываем сокет
-                    closeConnection(handler);
-                    return;
-                }
-
-                sendAcceptMessage(handler);
+                waitingAnswer(handler);
             }
         }
     
 
-        public void sendAcceptMessage(Socket handler)
+        public void sendMessage(Socket handler, string message)
         {
-
-            string message = "Message delivered!";
+           
             byte[] data = Encoding.Unicode.GetBytes(message);
 
             data = Encoding.Unicode.GetBytes(message);
@@ -79,51 +70,155 @@ namespace SocketServer
 
         }
 
-        public string waitingAnswer(Socket handler)
+        public void waitingAnswer(Socket handler)
         {
             // получаем сообщение
             StringBuilder builder = new StringBuilder();
-            int bytes = 0; // количество полученных байтов
+            int bytes = 0; // количество полученных байто
 
-            try
+            
+            byte[] metaData = new byte[256];
+            bytes = handler.Receive(metaData);
+
+            Dictionary<string, string> meta = Protocol.ParseMeta(Encoding.UTF8.GetString(metaData, 0, bytes));
+
+            Console.WriteLine("Meta len=" + meta.Count);
+
+            switch (Enum.Parse(typeof(Command), meta["Command"]))
             {
-                byte[] metaData = new byte[256];
-                bytes = handler.Receive(metaData);
+                case Command.LOGIN:
 
-                Dictionary<string, string> meta = Protocol.ParseMeta(Encoding.UTF8.GetString(metaData, 0, bytes));
+                    Console.WriteLine("Add" + meta["User"]);
+                    loginList.Add(meta["User"]);
+                    login = meta["User"];
+                    connectedUsers[login] = handler;
+                    break;
 
-                switch (Enum.Parse(typeof(Command), meta["Command"]))
-                {
-                    case Command.LOGIN:
+                case Command.TEXT:
 
+                    if (haveConnect(login) == false)
+                    {
+                        sendMessage(handler, "You dont have user to connect!");
                         break;
-                    case Command.TEXT:
-                        break;
-                    case Command.BIN:
-                        break;
-                }
+                    }
+                    string text = getTextRequest(handler);
+                    Console.WriteLine("text=" + text);
 
-                List<byte[]> list = new List<byte[]>();
-                do
-                {
-                    byte[] data = new byte[256];
-                    bytes = handler.Receive(metaData);
+                    // TODO: формирование пакетов и отправка другому юзеру
 
-                    list.Add(data);
-                }
-                while (handler.Available > 0);
+                    break;
+                case Command.BIN:
+
+                    if (haveConnect(login) == false)
+                    {
+                        sendMessage(handler, "You dont have user to connect!");
+                        break;
+                    }
+                    parseBinRequest(handler);
+                    break;
+
+                case Command.UTILS:
+
+                    if (haveConnect(login) == false)
+                    {
+                        sendMessage(handler, "You dont have user to connect!");
+                        break;
+                    }
+
+                    string addData = getTextRequest(handler);
+
+                    parseUtilsRequest(handler, meta["Utils"], addData);
+                    break;
             }
-            catch (Exception ex)
+            return;
+        }
+
+   
+        static string getTextRequest(Socket handler)
+        {
+            StringBuilder builder = new StringBuilder();
+            do
             {
-                Console.WriteLine(ex.Message);
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                byte[] data = new byte[255];
+                int bytes = handler.Receive(data, data.Length, 0);
 
+                builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
             }
-
-            Console.WriteLine(DateTime.Now.ToShortTimeString() + ": " + builder.ToString());
+            while (handler.Available > 0);
 
             return builder.ToString();
+        }
+
+        static void parseBinRequest(Socket handler)
+        {
+            List<byte[]> list = new List<byte[]>();
+
+            do
+            {
+                byte[] data = new byte[256];
+                handler.Receive(data, data.Length, 0);
+
+                list.Add(data);
+            }
+            while (handler.Available > 0);
+
+            // TODO: WRITE IN FILE
+            /*
+            using (Stream file = File.OpenWrite(@"c:\path\to\your\file\here.txt"))
+            {
+                foreach (var item in list)
+                {
+                    file.Write(item, 0, item.Length);
+                }
+            }
+            */
+            
+        }
+
+        public void parseUtilsRequest(Socket handler, string utils, string message)
+        {
+            if (utils.ToLower() == "get")
+            {
+                string answer = "";
+                answer += $"Count of all userls = {loginList.Count}\n";
+
+                foreach (var user_name in loginList)
+                {
+                    answer += $"Login: {user_name}\n";
+                }
+
+                sendMessage(handler, answer);
+            }
+
+            if (utils.ToLower() == "connect")
+            {
+                string user_name = message;
+                if (loginList.Contains(user_name) is false)
+                {
+                    sendMessage(handler, "Wrong login!");
+                }
+                else
+                {
+                    sendMessage(handler, "Successful connection");
+                    connectedUsers[user_name] = connectedUsers[login];
+                }
+            }
+
+            if (utils.ToLower() == "disconnect")
+            {
+                // TODO set null socket;
+            }
+
+            if (utils.ToLower() == "help")
+            {
+                // TODO help
+            }
+        }
+
+        public bool haveConnect(string login)
+        {
+            if (connectedUsers[login] == null) return false;
+            return true;
         }
 
         public void closeConnection(Socket handler)

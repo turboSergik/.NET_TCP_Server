@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "2YFTXxk8wg2oHziNMbKHc8Ov5MytPoc6nAztN4cTZWasmZI50rq/gSnTRH/HeGSnKuHVhze2wd7u71w7wO3FvA==",
+  "dgSpecHash": "ixRHG9VL6sm74iZWmy3OILSsuelAvg5rNnPLisV9WkaFnnDfIP1rwv0r39cjnS6nqsXfaXcPXwMGfXzj3QTzkw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\SocketServer.csproj",
+  "projectFilePath": "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\SocketServer.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

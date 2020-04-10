@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\SocketServer.csproj": {}
+    "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\SocketServer.csproj": {}
   },
   "projects": {
-    "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\SocketServer.csproj": {
+    "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\SocketServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\SocketServer.csproj",
+        "projectUniqueName": "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\SocketServer.csproj",
         "projectName": "SocketServer",
-        "projectPath": "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\SocketServer.csproj",
-        "packagesPath": "C:\\Users\\edelw\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\edelw\\Desktop\\Client-Server\\.NET_TCP_Server\\SocketServer\\obj\\",
+        "projectPath": "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\SocketServer.csproj",
+        "packagesPath": "C:\\Users\\sergp\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\Visual Studio Projects\\SocketServer\\SocketServer\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\edelw\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\sergp\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
