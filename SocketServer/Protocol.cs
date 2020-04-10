@@ -54,8 +54,8 @@ namespace SocketServer
         public static Packet ParsePacket(string buffer)
         {
             int split = buffer.IndexOf("\n\n") == -1 ? buffer.Length : buffer.IndexOf("\n\n") + 2;
-
-            Regex metaParser = new Regex("([A-Za-z 0-9]+): +([A-Za-z 0-9]+)");
+            Console.WriteLine(buffer);
+            Regex metaParser = new Regex("([A-Za-z 0-9]+): +(.+)");
             Match match = metaParser.Match(buffer.Substring(0, split));
 
             Dictionary<string, string> meta = new Dictionary<string, string>();
@@ -87,6 +87,19 @@ namespace SocketServer
             return packet;
         }
 
+        public static Packet ConfigurePacket(Command command, string username, string utils, byte[] message)
+        {
+            Dictionary<string, string> format = new Dictionary<string, string>();
+            format.Add("Command", command.ToString());
+            format.Add("User", username);
+            format.Add("Utils", utils);
+
+            Packet packet = new Packet();
+            packet.Meta = format;
+            packet.Response = message;
+            return packet;
+        }
+
         public static Dictionary<string, string> ConfigureMeta(Command command, string username)
         {
             Dictionary<string, string> format = new Dictionary<string, string>();
@@ -97,7 +110,7 @@ namespace SocketServer
 
         public static Dictionary<string, string> ParseMeta(string buffer)
         {
-            Regex metaParser = new Regex("([A-Za-z 0-9]+): +([A-Za-z 0-9]+)");
+            Regex metaParser = new Regex("([A-Za-z 0-9]+): +(.+)");
             Match match = metaParser.Match(buffer);
 
             Dictionary<string, string> meta = new Dictionary<string, string>();

@@ -16,6 +16,7 @@ namespace SocketTcpServer
         {
             
             ListenSocketInteraction listenSocketInteraction = new ListenSocketInteraction();
+            Console.WriteLine("Сервер запущен. Ожидание подключений...");
 
 
             // start listening
