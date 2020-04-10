@@ -67,7 +67,7 @@ namespace SocketServer
 
                 meta.Add(header, value);
                 match = match.NextMatch();
-            }
+            }   
 
             Packet packet = new Packet();
             packet.Meta = meta;

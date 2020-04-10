@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -82,13 +83,10 @@ namespace SocketServer
 
             Dictionary<string, string> meta = Protocol.ParseMeta(Encoding.UTF8.GetString(metaData, 0, bytes));
 
-            Console.WriteLine("Meta len=" + meta.Count);
-
             switch (Enum.Parse(typeof(Command), meta["Command"]))
             {
                 case Command.LOGIN:
 
-                    Console.WriteLine("Add" + meta["User"]);
                     loginList.Add(meta["User"]);
                     login = meta["User"];
                     connectedUsers[login] = handler;
@@ -96,15 +94,21 @@ namespace SocketServer
 
                 case Command.TEXT:
 
+                    Packet packet = new Packet();
+
                     if (haveConnect(login) == false)
                     {
                         sendMessage(handler, "You dont have user to connect!");
                         break;
                     }
                     string text = getTextRequest(handler);
-                    Console.WriteLine("text=" + text);
+                    Console.WriteLine("Message: " + text);
 
-                    // TODO: формирование пакетов и отправка другому юзеру
+                    // TODO: формирование пакетов и отправка другому юзеру +COMPLITED
+                    packet = Protocol.ConfigurePacket(Command.TEXT, login, Encoding.Unicode.GetBytes(text));
+
+                    connectedUsers[login].Send(packet.MetaBytes());
+                    connectedUsers[login].Send(packet.Response);
 
                     break;
                 case Command.BIN:
@@ -114,7 +118,10 @@ namespace SocketServer
                         sendMessage(handler, "You dont have user to connect!");
                         break;
                     }
+
+                    // TODO: формирование пакетов и отправка другому юзеру +COMLITED IN FUNC
                     parseBinRequest(handler);
+
                     break;
 
                 case Command.UTILS:
@@ -149,20 +156,31 @@ namespace SocketServer
             return builder.ToString();
         }
 
-        static void parseBinRequest(Socket handler)
+        public void parseBinRequest(Socket handler)
         {
             List<byte[]> list = new List<byte[]>();
+            int countOfAllBytes = 0;
 
             do
             {
                 byte[] data = new byte[256];
-                handler.Receive(data, data.Length, 0);
+                countOfAllBytes += handler.Receive(data, data.Length, 0);
 
                 list.Add(data);
             }
             while (handler.Available > 0);
 
-            // TODO: WRITE IN FILE
+            byte[] allData = list
+                            .SelectMany(a => a)
+                            .ToArray();
+
+            Packet packet = new Packet();
+            packet = Protocol.ConfigurePacket(Command.BIN, login, allData);
+
+            connectedUsers[login].Send(packet.MetaBytes());
+            connectedUsers[login].Send(packet.Response);
+
+            // TODO: WRITE IN FILE +COMPLITED
             /*
             using (Stream file = File.OpenWrite(@"c:\path\to\your\file\here.txt"))
             {
@@ -172,7 +190,7 @@ namespace SocketServer
                 }
             }
             */
-            
+
         }
 
         public void parseUtilsRequest(Socket handler, string utils, string message)
