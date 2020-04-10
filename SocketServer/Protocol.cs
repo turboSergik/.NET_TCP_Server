@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace SocketServer
 {
+    // Supported commands
     enum Command { LOGIN, TEXT, BIN, UTILS };
 
     struct Packet
@@ -49,32 +50,10 @@ namespace SocketServer
 
     class Protocol
     {
-        string[] AllowedHeaders = { "Command", "User" };
+        // Allowed headers
+        string[] AllowedHeaders = { "Command", "User", "Utils" };
 
-        public static Packet ParsePacket(string buffer)
-        {
-            int split = buffer.IndexOf("\n\n") == -1 ? buffer.Length : buffer.IndexOf("\n\n") + 2;
-            Console.WriteLine(buffer);
-            Regex metaParser = new Regex("([A-Za-z 0-9]+): +(.+)");
-            Match match = metaParser.Match(buffer.Substring(0, split));
-
-            Dictionary<string, string> meta = new Dictionary<string, string>();
-
-            while (match.Success)
-            {
-                string header = match.Groups[1].Value;
-                string value = match.Groups[2].Value;
-
-                meta.Add(header, value);
-                match = match.NextMatch();
-            }   
-
-            Packet packet = new Packet();
-            packet.Meta = meta;
-            packet.Response = Encoding.UTF8.GetBytes(buffer.Substring(split));
-            return packet;
-        }
-
+        // Configuring packet
         public static Packet ConfigurePacket(Command command, string username, byte[] message)
         {
             Dictionary<string, string> format = new Dictionary<string, string>();
@@ -87,6 +66,7 @@ namespace SocketServer
             return packet;
         }
 
+        // Configuring packet
         public static Packet ConfigurePacket(Command command, string username, string utils, byte[] message)
         {
             Dictionary<string, string> format = new Dictionary<string, string>();
@@ -100,28 +80,22 @@ namespace SocketServer
             return packet;
         }
 
-        public static Dictionary<string, string> ConfigureMeta(Command command, string username)
-        {
-            Dictionary<string, string> format = new Dictionary<string, string>();
-            format.Add("Command", command.ToString());
-            format.Add("User", username);
-            return format;
-        }
-
+        // Parsing meta string
         public static Dictionary<string, string> ParseMeta(string buffer)
         {
+            // Regular expression (2 groups: 1 - header, 2 - value)
             Regex metaParser = new Regex("([A-Za-z 0-9]+): +(.+)");
-            Match match = metaParser.Match(buffer);
+            Match match = metaParser.Match(buffer); // Match string
 
             Dictionary<string, string> meta = new Dictionary<string, string>();
 
-            while (match.Success)
+            while (match.Success) // While has match
             {
-                string header = match.Groups[1].Value;
-                string value = match.Groups[2].Value;
+                string header = match.Groups[1].Value; // Getting header
+                string value = match.Groups[2].Value; // Getting header value
 
                 meta.Add(header, value);
-                match = match.NextMatch();
+                match = match.NextMatch(); // Next iteration
             }
             return meta;
         }

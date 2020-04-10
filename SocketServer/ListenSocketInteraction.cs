@@ -48,93 +48,108 @@ namespace SocketServer
 
         public void requestPending()
         {
+            // Accepting user request
             Socket handler = listenSocket.Accept();
 
-            Console.WriteLine("Успешное подключение!");
+            Console.WriteLine("User successfully connected!");
+
+            // Creating thread to communicate with client
             Thread manager = new Thread(new ThreadStart(() => requestManager(handler)));
             manager.Start();
         }
 
         public void requestManager(Socket handler)
         {
-            while (true)
+            try
             {
-                waitingAnswer(handler);
+                while (true)
+                {
+                    waitingAnswer(handler);
+                }
+            } catch(Exception)
+            {
+                closeConnection(handler);
+                return;
             }
         }
     
 
         public void sendMessage(Socket handler, string message)
         {
-
             Packet packet = new Packet();
             packet = Protocol.ConfigurePacket(Command.TEXT, "Server", Encoding.Unicode.GetBytes(message));
 
+            // Sending header + response to client
             handler.Send(packet.MetaBytes());
             handler.Send(packet.Response);
         }
 
         public void waitingAnswer(Socket handler)
         {
-            // получаем сообщение
+            // receive message
             StringBuilder builder = new StringBuilder();
-            int bytes = 0; // количество полученных байто
+            int bytes = 0; // bytes readed
 
-            
+            // Waiting for meta bytes
             byte[] metaData = new byte[256];
             bytes = handler.Receive(metaData);
 
+            // Parsing meta
             Dictionary<string, string> meta = Protocol.ParseMeta(Encoding.UTF8.GetString(metaData, 0, bytes));
 
+            // Check user descriptor
             if (userLogin.ContainsKey(handler) is true) login = userLogin[handler];
 
+            // Parsing meta command and managing request
             switch (Enum.Parse(typeof(Command), meta["Command"]))
             {
                 case Command.LOGIN:
 
-                    loginList.Add(meta["User"]);
-                    login = meta["User"];
-                    usersSockets[login] = handler;
-                    userLogin[handler] = login;
+                    loginList.Add(meta["User"]); // Add username to authorized users list
+                    login = meta["User"]; // Current username
+                    usersSockets[login] = handler; // Key - username, value - descriptor
+                    userLogin[handler] = login; // Key - descriptor, value - username
                     break;
 
                 case Command.TEXT:
 
                     Packet packet = new Packet();
-
+                    // Validate username
                     if (haveConnect(login) == false)
                     {
                         string message = getTextRequest(handler);
                         sendMessage(handler, "You dont have user to connect!");
                         break;
                     }
+
+                    // Getting client request
                     string text = getTextRequest(handler);
 
-                    // TODO: формирование пакетов и отправка другому юзеру +COMPLITED
+                    // Configure response
                     packet = Protocol.ConfigurePacket(Command.TEXT, login, Encoding.Unicode.GetBytes(text));
 
+                    // Sending meta + response bytes to connected user
                     connectedUsers[login].Send(packet.MetaBytes());
                     connectedUsers[login].Send(packet.Response);
 
                     break;
                 case Command.BIN:
-
+                    // Validate
                     if (haveConnect(login) == false)
                     {
                         string message = getTextRequest(handler);
                         sendMessage(handler, "You dont have user to connect!");
                         break;
                     }
-
-                    // TODO: формирование пакетов и отправка другому юзеру +COMLITED IN FUNC
+                    // Parsing client binary request
                     parseBinRequest(handler, meta);
-
                     break;
 
                 case Command.UTILS:
-
+                    // Server utils
                     string addData = getTextRequest(handler);
                  
+                    // Parsing client command
                     parseUtilsRequest(handler, meta["Utils"], addData);
                     break;
             }
@@ -144,13 +159,13 @@ namespace SocketServer
    
         static string getTextRequest(Socket handler)
         {
-
             StringBuilder builder = new StringBuilder();
             do
             {
-                byte[] data = new byte[255];
+                // Receiving packets each 256 bytes
+                byte[] data = new byte[256];
                 int bytes = handler.Receive(data, data.Length, 0);
-
+                // Appending and decoding them to string builder
                 builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
             }
             while (handler.Available > 0);
@@ -160,11 +175,13 @@ namespace SocketServer
 
         public void parseBinRequest(Socket handler, Dictionary<string, string> meta)
         {
+            // Creating byte container
             List<byte[]> list = new List<byte[]>();
             int countOfAllBytes = 0;
 
             do
             {
+                // Receiving packets each 256 bytes
                 byte[] data = new byte[256];
                 countOfAllBytes += handler.Receive(data, data.Length, 0);
 
@@ -172,24 +189,26 @@ namespace SocketServer
             }
             while (handler.Available > 0);
 
+            // Join bytes packets into byte array
             byte[] allData = list
                             .SelectMany(a => a)
                             .ToArray();
 
+            // Configuring final package
             Packet packet = new Packet();
 
             if (meta.ContainsKey("Utils") == true) packet = Protocol.ConfigurePacket(Command.BIN, login, meta["Utils"], allData);
             else packet = Protocol.ConfigurePacket(Command.BIN, login, allData);
 
+            // Sending meta + bytes to other client
             connectedUsers[login].Send(packet.MetaBytes());
             connectedUsers[login].Send(packet.Response);
-
-           
 
         }
 
         public void parseUtilsRequest(Socket handler, string utils, string message)
         {
+            // Getting authorized users
             if (utils.ToLower() == "get")
             {
                 string answer = "";
@@ -203,7 +222,7 @@ namespace SocketServer
 
                 sendMessage(handler, answer);
             }
-
+            // Connecting to client
             if (utils.ToLower() == "connect")
             {
                 string user_name = message;
@@ -217,15 +236,10 @@ namespace SocketServer
                     connectedUsers[login] = usersSockets[user_name];
                 }
             }
-
+            // Disconnecting from server
             if (utils.ToLower() == "disconnect")
             {
-                // TODO set null socket;
-            }
-
-            if (utils.ToLower() == "help")
-            {
-                // TODO help
+                closeConnection(handler);
             }
         }
 
@@ -237,8 +251,15 @@ namespace SocketServer
 
         public void closeConnection(Socket handler)
         {
+            // Cleanup
+            loginList.Remove(login);
+            connectedUsers[login] = null;
+            usersSockets.Remove(login);
+
             handler.Shutdown(SocketShutdown.Both);
             handler.Close();
+
+            Console.WriteLine("User disconnected");
         }
     }
 }

@@ -14,9 +14,8 @@ namespace SocketTcpServer
     {
         static void Main(string[] args)
         {
-            
             ListenSocketInteraction listenSocketInteraction = new ListenSocketInteraction();
-            Console.WriteLine("Сервер запущен. Ожидание подключений...");
+            Console.WriteLine("Server started. Waiting for requests...");
 
 
             // start listening
